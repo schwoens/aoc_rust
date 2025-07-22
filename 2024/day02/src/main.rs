@@ -4,11 +4,17 @@ fn main() {
     let input = read_to_string("input.txt").unwrap();
 
     println!("Part  1: {}", part1(&input));
+    println!("Part  2: {}", part2(&input));
 }
 
 fn part1(input: &str) -> i32 {
     let reports = parse_reports(input);
-    count_safe_reports(&reports)
+    count_safe_reports(&reports, false)
+}
+
+fn part2(input: &str) -> i32 {
+    let reports = parse_reports(input);
+    count_safe_reports(&reports, true)
 }
 
 fn parse_reports(input: &str) -> Vec<Vec<i32>> {
@@ -23,10 +29,23 @@ fn parse_reports(input: &str) -> Vec<Vec<i32>> {
         .collect()
 }
 
-fn count_safe_reports(reports: &[Vec<i32>]) -> i32 {
-    reports
-        .iter()
-        .fold(0, |acc, report| if is_safe(report) { acc + 1 } else { acc })
+fn count_safe_reports(reports: &[Vec<i32>], dampener: bool) -> i32 {
+    reports.iter().fold(0, |acc, report| {
+        if is_safe(report) {
+            acc + 1
+        } else {
+            if dampener {
+                for i in 0..report.len() {
+                    let mut dampened_report = report.clone();
+                    dampened_report.remove(i);
+                    if is_safe(&dampened_report) {
+                        return acc + 1;
+                    }
+                }
+            }
+            acc
+        }
+    })
 }
 
 fn is_safe(report: &[i32]) -> bool {
@@ -64,5 +83,11 @@ mod test {
     fn part1_works() {
         let test_input = read_to_string("test_input.txt").unwrap();
         assert_eq!(part1(&test_input), 2);
+    }
+
+    #[test]
+    fn part2_works() {
+        let test_input = read_to_string("test_input.txt").unwrap();
+        assert_eq!(part2(&test_input), 4);
     }
 }
